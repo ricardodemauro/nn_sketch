@@ -3,13 +3,13 @@ class Matrix {
       this.rows = rows;
       this.cols = cols;
   
-      this.matrix = [];
+      this.data = [];
   
       for (let i = 0, len = this.rows; i < len; i++) {
-        this.matrix[i] = [];
+        this.data[i] = [];
   
         for (let j = 0, lenj = this.cols; j < lenj; j++)
-          this.matrix[i][j] = 0;
+          this.data[i][j] = 0;
       }
     }
 
@@ -18,24 +18,24 @@ class Matrix {
         
         for (let i = 0, len = this.rows; i < len; i++) {
             for (let j = 0, lenj = this.cols; j < lenj; j++) {
-                result.matrix[j][i] = this.matrix[i][j];
+                result.data[j][i] = this.data[i][j];
             }
         }
         return result;
     }
-  
-    multiply(n) {
-        if(n instanceof Matrix) {
-            if(this.cols !== n.rows) {
+
+    static multiply(m1, m2) {
+        if(m1 instanceof Matrix && m2 instanceof Matrix) {
+            if(m1.cols !== m2.rows) {
                 console.error('column of A does not math rows of B')
                 throw new Error('column of A does not math rows of B');
             }
-            if(this.rows !== n.cols) {
+            if(this.rows !== m2.cols) {
                 console.error('rows of A does not math columns of B')
                 throw new Error('rows of A does not math columns of B');
             }
-            const a = this;
-            const b = n;
+            const a = m1;
+            const b = m2;
 
             let result = new Matrix(a.rows, b.cols);
             
@@ -44,36 +44,52 @@ class Matrix {
                     //sum all
                     let sum = 0;
                     for(let k = 0; k < a.cols; k++) {
-                        sum += a.matrix[i][k] * b.matrix[k][j];
+                        sum += a.data[i][k] * b.data[k][j];
                     }
-                    result.matrix[i][j] = sum;
+                    result.data[i][j] = sum;
                 }
             }
             return result;
         }
         else {
-            this.loopAll((d, i, j) => d *= n);
+            console.error('only multiply by another matrix')
+            throw new Error('only multiply by another matrix');
         }
+    }
+  
+    multiply(n) {
+        if(n instanceof Matrix) {
+            console.error('only multiply by scale')
+            throw new Error('only multiply by scale');
+        }
+        else {
+            this.map((d, i, j) => d *= n);
+        }
+    }
+
+    print() {
+        console.table(this.data);
     }
   
     add(n) {
         if(n instanceof Matrix) {
-            for (let i = 0, len = this.matrix.length; i < len; i++) {
-                for(let j = 0, lenj = this.matrix[i].length; j < lenj; j++) 
-                  this.matrix[i][j] = n.matrix[i][j];
+            for (let i = 0, len = this.data.length; i < len; i++) {
+                for(let j = 0, lenj = this.data[i].length; j < lenj; j++) 
+                  this.data[i][j] = n.data[i][j];
             }
         }
-        this.loopAll((d, i, j) => d += n);
-    }
-  
-    loopAll(func) {
-      if(func)
-        for (let i = 0, len = this.matrix.length; i < len; i++) {
-          for(let j = 0, lenj = this.matrix[i].length; j < lenj; j++) 
-            this.matrix[i][j] = func(this.matrix[i][j], i, j);
-        }
+        this.map((d, i, j) => d += n);
     }
 
+    map(func) {
+        for(let i = 0; i < this.rows; i++) {
+            for(let j = 0; this.cols; j++) {
+                let val = this.data[i][j];
+                this.data[i][j] = func(val, i, j);
+            }
+        }
+    }
+  
     randomize() {
         this.loopAll(() => Math.floor(Math.random() * 10))
     }
