@@ -12,6 +12,17 @@ class Matrix {
           this.matrix[i][j] = 0;
       }
     }
+
+    transpose() {
+        let result = new Matrix(this.cols, this.rows);
+        
+        for (let i = 0, len = this.rows; i < len; i++) {
+            for (let j = 0, lenj = this.cols; j < lenj; j++) {
+                result.matrix[j][i] = this.matrix[i][j];
+            }
+        }
+        return result;
+    }
   
     multiply(n) {
         if(n instanceof Matrix) {
