@@ -13,26 +13,44 @@ class Matrix {
       }
     }
 
-    transpose() {
-        let result = new Matrix(this.cols, this.rows);
+    static transpose(matrix) {
+        let result = new Matrix(matrix.cols, matrix.rows);
         
-        for (let i = 0, len = this.rows; i < len; i++) {
-            for (let j = 0, lenj = this.cols; j < lenj; j++) {
-                result.data[j][i] = this.data[i][j];
+        for (let i = 0, len = matrix.rows; i < len; i++) {
+            for (let j = 0, lenj = matrix.cols; j < lenj; j++) {
+                result.data[j][i] = matrix.data[i][j];
             }
         }
         return result;
     }
 
+    static fromArray(arr) {
+        let m = new Matrix(arr.length, 1);
+        for(let i = 0; i < arr.length; i++) {
+            m.data[i][0] = arr[i];
+        }
+        return m;
+    }
+
+    static toArray(matrix) {
+        let arr = [];
+        for(let i = 0; i < matrix.rows; i++) {
+            for(let j = 0; j < matrix.cols; j++) {
+                arr.push(matrix.data[i][j]);
+            }
+        }
+        return arr;
+    }
+
+    toArray() {
+        return Matrix.toArray(this);
+    }
+
     static multiply(m1, m2) {
         if(m1 instanceof Matrix && m2 instanceof Matrix) {
             if(m1.cols !== m2.rows) {
-                console.error('column of A does not math rows of B')
-                throw new Error('column of A does not math rows of B');
-            }
-            if(this.rows !== m2.cols) {
-                console.error('rows of A does not math columns of B')
-                throw new Error('rows of A does not math columns of B');
+                console.error('columns of m1 does not math rows of m2')
+                throw new Error('columns of m1 does not math rows of m2');
             }
             const a = m1;
             const b = m2;
@@ -78,12 +96,26 @@ class Matrix {
                   this.data[i][j] = n.data[i][j];
             }
         }
-        this.map((d, i, j) => d += n);
+        else {
+            this.map((d, i, j) => d += n);
+        }
+    }
+
+    static subtract(a, b) {
+        //return new matrxi a - b
+        let result = new Matrix(a.rows, a.cols);
+        for(let i = 0; i < a.rows; i++) {
+            for(let j = 0; j < a.cols; j++) {
+                let val = a.data[i][j];
+                result.data[i][j] = a.data[i][j] - b.data[i][j];
+            }
+        }
+        return result;
     }
 
     map(func) {
         for(let i = 0; i < this.rows; i++) {
-            for(let j = 0; this.cols; j++) {
+            for(let j = 0; j < this.cols; j++) {
                 let val = this.data[i][j];
                 this.data[i][j] = func(val, i, j);
             }
@@ -91,6 +123,6 @@ class Matrix {
     }
   
     randomize() {
-        this.loopAll(() => Math.floor(Math.random() * 10))
+        this.map((v, i, j) => Math.random() * 2 - 1);
     }
 }
