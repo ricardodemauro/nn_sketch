@@ -1,128 +1,135 @@
 class Matrix {
-    constructor(rows, cols) {
-      this.rows = rows;
-      this.cols = cols;
-  
-      this.data = [];
-  
-      for (let i = 0, len = this.rows; i < len; i++) {
-        this.data[i] = [];
-  
-        for (let j = 0, lenj = this.cols; j < lenj; j++)
-          this.data[i][j] = 0;
+  constructor(rows, cols) {
+    this.rows = rows;
+    this.cols = cols;
+    this.data = Array(this.rows).fill().map(() => Array(this.cols).fill(0));
+  }
+
+  copy() {
+    let m = new Matrix(this.rows, this.cols);
+    for (let i = 0; i < this.rows; i++) {
+      for (let j = 0; j < this.cols; j++) {
+        m.data[i][j] = this.data[i][j];
       }
     }
+    return m;
+  }
 
-    static transpose(matrix) {
-        let result = new Matrix(matrix.cols, matrix.rows);
-        
-        for (let i = 0, len = matrix.rows; i < len; i++) {
-            for (let j = 0, lenj = matrix.cols; j < lenj; j++) {
-                result.data[j][i] = matrix.data[i][j];
-            }
-        }
-        return result;
-    }
+  static fromArray(arr) {
+    return new Matrix(arr.length, 1).map((e, i) => arr[i]);
+  }
 
-    static fromArray(arr) {
-        let m = new Matrix(arr.length, 1);
-        for(let i = 0; i < arr.length; i++) {
-            m.data[i][0] = arr[i];
-        }
-        return m;
+  static subtract(a, b) {
+    if (a.rows !== b.rows || a.cols !== b.cols) {
+      console.log('Columns and Rows of A must match Columns and Rows of B.');
+      return;
     }
 
-    static toArray(matrix) {
-        let arr = [];
-        for(let i = 0; i < matrix.rows; i++) {
-            for(let j = 0; j < matrix.cols; j++) {
-                arr.push(matrix.data[i][j]);
-            }
-        }
-        return arr;
+    // Return a new Matrix a-b
+    return new Matrix(a.rows, a.cols)
+      .map((_, i, j) => a.data[i][j] - b.data[i][j]);
+  }
+
+  toArray() {
+    let arr = [];
+    for (let i = 0; i < this.rows; i++) {
+      for (let j = 0; j < this.cols; j++) {
+        arr.push(this.data[i][j]);
+      }
+    }
+    return arr;
+  }
+
+  randomize() {
+    return this.map(e => Math.random() * 2 - 1);
+  }
+
+  add(n) {
+    if (n instanceof Matrix) {
+      if (this.rows !== n.rows || this.cols !== n.cols) {
+        console.log('Columns and Rows of A must match Columns and Rows of B.');
+        return;
+      }
+      return this.map((e, i, j) => e + n.data[i][j]);
+    } else {
+      return this.map(e => e + n);
+    }
+  }
+
+  static transpose(matrix) {
+    return new Matrix(matrix.cols, matrix.rows)
+      .map((_, i, j) => matrix.data[j][i]);
+  }
+
+  static multiply(a, b) {
+    // Matrix product
+    if (a.cols !== b.rows) {
+      console.log('Columns of A must match rows of B.');
+      return;
     }
 
-    toArray() {
-        return Matrix.toArray(this);
-    }
+    return new Matrix(a.rows, b.cols)
+      .map((e, i, j) => {
+        // Dot product of values in col
+        let sum = 0;
+        for (let k = 0; k < a.cols; k++) {
+          sum += a.data[i][k] * b.data[k][j];
+        }
+        return sum;
+      });
+  }
 
-    static multiply(m1, m2) {
-        if(m1 instanceof Matrix && m2 instanceof Matrix) {
-            if(m1.cols !== m2.rows) {
-                console.error('columns of m1 does not math rows of m2')
-                throw new Error('columns of m1 does not math rows of m2');
-            }
-            const a = m1;
-            const b = m2;
+  multiply(n) {
+    if (n instanceof Matrix) {
+      if (this.rows !== n.rows || this.cols !== n.cols) {
+        console.log('Columns and Rows of A must match Columns and Rows of B.');
+        return;
+      }
 
-            let result = new Matrix(a.rows, b.cols);
-            
-            for(let  i = 0; i < result.rows; i++) {
-                for(let j = 0; j < result.cols; j++) {
-                    //sum all
-                    let sum = 0;
-                    for(let k = 0; k < a.cols; k++) {
-                        sum += a.data[i][k] * b.data[k][j];
-                    }
-                    result.data[i][j] = sum;
-                }
-            }
-            return result;
-        }
-        else {
-            console.error('only multiply by another matrix')
-            throw new Error('only multiply by another matrix');
-        }
+      // hadamard product
+      return this.map((e, i, j) => e * n.data[i][j]);
+    } else {
+      // Scalar product
+      return this.map(e => e * n);
     }
-  
-    multiply(n) {
-        if(n instanceof Matrix) {
-            console.error('only multiply by scale')
-            throw new Error('only multiply by scale');
-        }
-        else {
-            this.map((d, i, j) => d *= n);
-        }
-    }
+  }
 
-    print() {
-        console.table(this.data);
+  map(func) {
+    // Apply a function to every element of matrix
+    for (let i = 0; i < this.rows; i++) {
+      for (let j = 0; j < this.cols; j++) {
+        let val = this.data[i][j];
+        this.data[i][j] = func(val, i, j);
+      }
     }
-  
-    add(n) {
-        if(n instanceof Matrix) {
-            for (let i = 0, len = this.data.length; i < len; i++) {
-                for(let j = 0, lenj = this.data[i].length; j < lenj; j++) 
-                  this.data[i][j] = n.data[i][j];
-            }
-        }
-        else {
-            this.map((d, i, j) => d += n);
-        }
-    }
+    return this;
+  }
 
-    static subtract(a, b) {
-        //return new matrxi a - b
-        let result = new Matrix(a.rows, a.cols);
-        for(let i = 0; i < a.rows; i++) {
-            for(let j = 0; j < a.cols; j++) {
-                let val = a.data[i][j];
-                result.data[i][j] = a.data[i][j] - b.data[i][j];
-            }
-        }
-        return result;
-    }
+  static map(matrix, func) {
+    // Apply a function to every element of matrix
+    return new Matrix(matrix.rows, matrix.cols)
+      .map((e, i, j) => func(matrix.data[i][j], i, j));
+  }
 
-    map(func) {
-        for(let i = 0; i < this.rows; i++) {
-            for(let j = 0; j < this.cols; j++) {
-                let val = this.data[i][j];
-                this.data[i][j] = func(val, i, j);
-            }
-        }
+  print() {
+    console.table(this.data);
+    return this;
+  }
+
+  serialize() {
+    return JSON.stringify(this);
+  }
+
+  static deserialize(data) {
+    if (typeof data == 'string') {
+      data = JSON.parse(data);
     }
-  
-    randomize() {
-        this.map((v, i, j) => Math.random() * 2 - 1);
-    }
+    let matrix = new Matrix(data.rows, data.cols);
+    matrix.data = data.data;
+    return matrix;
+  }
+}
+
+if (typeof module !== 'undefined') {
+  module.exports = Matrix;
 }
